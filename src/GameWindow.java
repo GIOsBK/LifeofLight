@@ -6,6 +6,8 @@ import bases.inputs.InputManager;
 import bases.uis.InputText;
 import bases.uis.StatScreen;
 import bases.uis.TextScreen;
+import novels.Choice;
+import novels.Story;
 import settings.Settings;
 
 import javax.swing.JFrame;
@@ -13,9 +15,10 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import static java.lang.System.nanoTime;
-import static java.lang.System.setOut;
 
 /**
  * Created by huynq on 7/28/17.
@@ -26,61 +29,137 @@ public class GameWindow extends JFrame {
     private Graphics2D backBufferGraphics;
 
     private long lastTimeUpdate = -1;
-    int height = 5;// cao
-    int width =5;// rong
-    int playerx=2;
-    int playery=3;
+    private int playX = 2;
+    private int playY = 3;
+    private int mapWidth = 5;
+    private int mapHeight = 5;
+    private Story currentStory;
+    HashMap<String, Story> storyMap = new HashMap<>();
 
-    public void in_map(){
-        EventManager.pushClearUI();
-        String line;
-        for (int y = 0; y <= height + 1; y++) {
-           line = "";
-            for (int x = 0; x <= width + 1; x++) {
-                if (x == 0 || x == width + 1) {
-                    line += " * ";
-                } else if (y == 0 || y == height + 1) {
-                    line += " * ";
-                } else if (x == playerx && y == playery) {
-                    line += " @ ";
+    public void showMap() {
+        for (int x = 0; x < mapHeight; x++) {
+            for (int y = 0; y < mapWidth; y++) {
+                if (x == playX && y == playY) {
+                    EventManager.pushUIMessage(" @ ");
                 } else {
-                    line += "   ";
+                    EventManager.pushUIMessage(" x ");
                 }
+
             }
-            EventManager.pushUIMessage(line);
+            EventManager.pushUIMessageNewLine("");
         }
     }
+    void changeStory(String newStoryID){
+        currentStory = storyMap.get(newStoryID);
+        EventManager.pushUIMessageNewLine(currentStory.text);
+    }
 
-
-
-
-    /////////////////////////////////////////////////////////////////////
     public GameWindow() {
         setupFont();
         setupPanels();
         setupWindow();
-        EventManager.pushClearUI();
+
+        Story story1 = new Story("E000001",
+                "\"Tiếng kẽo kẹt buông xuống từ trần nhà, kéo theo chùm sáng lờ mờ quanh căn phòng. Không dễ để nhận ra có bao nhiêu người đang ở trong căn phòng này.\n" +
+                        "Trong lúc lần mò xung quanh căn phòng, Có tiếng nói vang lên :\n" +
+                        "Này chàng trai trẻ, chàng trai tên là gì vậy?",
+        new Choice("sang","E000002"),
+        new Choice("other","E000003"));
+        Story story2 = new Story(
+                "E000002",
+                "Được đó quả là 1 cái tên kiên cường và sáng sủa.\n" +
+                        "Không biết cậu có nhớ mình đã từng là 1 chiến binh vĩ đại đến từ đế quốc Neflim cổ xưa hay chăng ?",
+                new Choice("Yes", "E000010"),
+                new Choice("No", "E000005"),
+                new Choice("other","E000002"));
+
+
+        Story story3 = new Story(
+                "E000003",
+                "Cậu có nhầm không ? Chắc các viên đá đã làm cậu mất trí rồi. Cậu cố nhớ lại xem.\n" +
+                        "Tên cậu là ?",
+                new Choice("Sang", "E000002"),
+                new Choice("other", "E000004"));
+        Story story4 = new Story(
+                "E0004",
+                "Không thể như vậy được. Thần Murk không nói sai, tên cậu không thể là  như vậy được.\n" +
+                        "Này chàng trai trẻ tên cậu có phải là \"Sang\" không ? Hay tên cậu là ? ",
+                new Choice("Sang", "E000002"),
+                new Choice("other", "E000004"));
+        Story story5 = new Story(
+                "E000005",
+                "Đế quốc Neflim là đế chế hùng mạnh bao phủ toàn cõi lục địa này cách đây hàng ngàn năm trước.\n" +
+                        "Thậm chí lực lượng của đế chế còn làm tộc Rồng có vài phần chú ý.\n" +
+                        "\n" +
+                        "Sức mạnh lớn luôn đi theo hiểm họa tương ứng. Tổng lãnh quỷ sai đã sớm để ý đến sức mạnh to lơn này từ trước đó rất lâu.\n" +
+                        "và hắn đã đặt vào nó 1 điếm yếu chí mạng. Đó là lòng tham và sự đố kị."
+                        + "\n" +
+                        "Gõ ;#00ff00Next; để tiếp tục câu truyện",
+                new Choice("Next", "E000006"));
+        Story story6 = new Story(
+                "E000006",
+                "Hắn biết cốt lõi của sức manh này chính là niềm tin vững chãi vào đấng sáng thế. Do vậy còn ai có thể củng cố niềm tin vào ngài khi mà còn đang mải đấu đá lẫn nhau.\n" +
+                        "Dần dần thế giới suy tàn và những thế lực hắc ám nổi dậy. Toàn bộ nhân loại đã gần như bị tiêu diệt nếu như không có sự giúp đợ của :\n" +
+                        "Noah và con tàu của ông ấy.\n" +
+                        "\n" +
+                        "Đó là những gì kinh thánh ghi lại. Thực ra còn 1 người nữa đó chính là LightLord. Ngài đã hi sinh tính mạng để cứu lấy muôn loài và nhường phần chiến công của mình để chuộc lỗi cho Noah.\n" +
+                        "\n" +
+                        "Chuyện của Noah là 1 câu truyện khác mà cậu có thể tìm hiểu sau.\n" +
+                        "\n" +
+                        "Gõ ;#00ff00Next; để tiếp tục câu truyện",
+                new Choice("Next", "E000007"));
+
+
+        storyMap.put(story1.id, story1);
+        storyMap.put(story2.id, story2);
+        storyMap.put(story3.id, story3);
+        storyMap.put(story4.id,story4);
+        storyMap.put(story5.id,story5);
+        storyMap.put(story6.id,story6);
+
+
+        currentStory = story1;
+        EventManager.pushUIMessage(currentStory.text);
+
+
+
+
         InputManager.instance.addCommandListener(new CommandListener() {
             @Override
             public void onCommandFinished(String command) {
-                if (command.equals("map")){
-                    String line;
-                    for (int y = 0; y <= height + 1; y++) {
-                        line = "";
-                        for (int x = 0; x <=width + 1; x++) {
-                            if (x == 0 || x == width + 1) {
-                                line += " * ";
-                            } else if (y == 0 || y == height + 1) {
-                                line += " * ";
-                            } else if (x == playerx && y == playery) {
-                                line += " @ ";
-                            } else {
-                                line += "   ";
-                            }
-                        }
-                        EventManager.pushUIMessage(line);
+                EventManager.pushUIMessageNewLine("");
+                EventManager.pushUIMessage(command);
+                EventManager.pushUIMessageNewLine("");
+
+                for (Choice choice: currentStory.choices) {
+                    if (choice.match(command)){
+                        changeStory(choice.to);
+                        break;
                     }
                 }
+
+
+
+
+
+
+
+                /*if (command.equalsIgnoreCase("map")) {
+                    showMap();
+                } else if (command.equalsIgnoreCase("right")) {
+                    if (playX == mapWidth - 1) {
+                        EventManager.pushUIMessageNewLine("die");
+                    } else {
+                        playX++;
+                        EventManager.pushUIMessageNewLine("ban vua di sang phai ");
+                    }
+                }else  if (command.equalsIgnoreCase("sang")){
+                    currentStory = story2;
+                    EventManager.pushUIMessage(currentStory.text);
+                }else {
+                    currentStory = story3;
+                    EventManager.pushUIMessage(currentStory.text);
+                }*/
             }
 
             @Override
@@ -88,71 +167,9 @@ public class GameWindow extends JFrame {
 
             }
         });
-        int i = 0;
-        while (i <100){
-        InputManager.instance.addCommandListener(new CommandListener() {
-            @Override
-            public void onCommandFinished(String command) {
-                switch (command)
-                {
-                    case "l":
-                        if (playerx>1 && playerx <=width)
-                        {
-                            playerx --;
-                        }
-                        else {
-                           EventManager.pushUIMessage("die");
-                        }
-                        in_map();
-                        break;
-                    case "r":
-                        if (playerx<0 && playerx <width)
-                        {
-                            playerx ++;
-                        }
-                        else {
-                            EventManager.pushUIMessage("die");
-                        }
-                        in_map();
-                        break;
-                    case "t":
-                        if(playery>1 && playery <= height){
-                            playery--;
-                        }
-                        else {
-                            EventManager.pushUIMessage("die");
-                        }
-                        in_map();
-                        break;
-                    case "d":
-                        if(playery >0 && playery< height){
-                            playery++;
-                        }
-                        else {
-                            EventManager.pushUIMessage("die");
-                        }
-                        in_map();
-                        break;
-                    default:
-                        EventManager.pushUIMessage("lenh sai. nhap lai");
-                        in_map();
-                }
 
-            }
-
-            @Override
-            public void commandChanged(String command) {
-
-            }
-        });
-            i++;
-
-
-        }
 
     }
-
-
 
     private void setupFont() {
 
@@ -231,48 +248,6 @@ public class GameWindow extends JFrame {
                 InputManager.instance.run();
                 render(backBufferGraphics);
                 repaint();
-                /*InputManager.instance.addCommandListener(new CommandListener() {
-                    @Override
-                    public void onCommandFinished(String command) {
-                        switch (command)
-                        {
-                            case "l":
-                                if (playerx>1 && playerx <=width)
-                                {
-                                    playerx --;
-                                }
-                                in_map();
-                                break;
-                            case "r":
-                                if (playerx<0 && playerx <width)
-                                {
-                                    playerx ++;
-                                }
-                                in_map();
-                                break;
-                            case "t":
-                                if(playery>1 && playery <= height){
-                                    playery--;
-                                }
-                                in_map();
-                                break;
-                            case "d":
-                                if(playery >0 && playery< height){
-                                    playery++;
-                                }
-                                in_map();
-                                break;
-                            default:
-                                EventManager.pushUIMessage("die.hehe");
-                        }
-                    }
-
-                    @Override
-                    public void commandChanged(String command) {
-
-                    }
-                });*/
-
             }
         }
     }

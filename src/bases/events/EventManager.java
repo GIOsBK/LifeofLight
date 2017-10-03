@@ -24,7 +24,11 @@ public class EventManager {
     }
 
     public static void pushUIMessage(String message) {
-        push(EventType.UI_MESSAGE," " +message);
+        push(EventType.UI_MESSAGE, message);
+    }
+
+    public static void pushUIMessageNewLine(String message) {
+        push(EventType.UI_MESSAGE, message + "\n");
     }
 
     public static void pushHelpMessage() {
